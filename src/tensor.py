@@ -26,10 +26,13 @@ class Tensor:
         self.grad = np.zeros_like(self.data)
         self.parents = parents or []
 
-    def __ensure_tensor(self, other: int | float | Tensor) -> Tensor:
+    def __ensure_tensor(self, other: int | float | list | np.ndarray | Tensor) -> Tensor:
         if isinstance(other, Tensor):
             return other
-        return Tensor(other)
+        if type(other) in [int, float, list, np.ndarray]:
+            return Tensor(other)
+        return TypeError(
+            f"Expected Tensor, int, float, list or np.ndarray, got {type(other)}")
 
     def __add__(self, other: Tensor | int | float):
         other = self.__ensure_tensor(other)
