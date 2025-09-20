@@ -1,7 +1,9 @@
 from abc import abstractmethod
+from tensor import Tensor
+from typing import Callable
 
 
-class Model:
+class Module:
     def __init__(self):
         pass
 
