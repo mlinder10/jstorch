@@ -1,14 +1,24 @@
-from src.tensor import Tensor
+import numpy as np
+from src.tensor import Tensor, SGD
 
+xs = np.linspace(-5, 5, 20)
+ys = 2 * xs + 5
 
-x = Tensor(2, requires_grad=True)
-y = Tensor(7, requires_grad=True)
-b = Tensor(5, requires_grad=True)
+w = Tensor(np.random.randn(), requires_grad=True)
+b = Tensor(np.random.randn(), requires_grad=True)
 
-z = x * y + b ** 3
+optimizer = SGD([w, b], lr=0.01)
 
-z.backward()
+for epoch in range(200):
+    optimizer.zero_grad()
 
-print("x.grad:", x.grad)
-print("y.grad:", y.grad)
-print("b.grad:", b.grad)
+    preds = w * xs + b
+    loss = ((preds - ys) ** 2).mean()
+
+    loss.backward()
+
+    optimizer.step()
+
+    if epoch % 20 == 0:
+        print(
+            f"Epoch {epoch}: loss={loss.data:.4f}, w={w.data:.4f}, b={b.data:.4f}")
