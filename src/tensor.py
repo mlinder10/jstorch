@@ -67,6 +67,27 @@ class Tensor:
         if self.grad_fn == GradFn.ADD:
             self.parents[0].backward(grad)
             self.parents[1].backward(grad)
+
+        elif self.grad_fn == GradFn.SUB:
+            self.parents[0].backward(grad)
+            self.parents[1].backward(-grad)
+
+        elif self.grad_fn == GradFn.MUL:
+            self.parents[0].backward(grad * self.parents[1].data)
+            self.parents[1].backward(grad * self.parents[0].data)
+
+        elif self.grad_fn == GradFn.DIV:
+            self.parents[0].backward(grad * (1 / self.parents[1].data))
+            self.parents[1].backward(
+                grad * (-self.parents[0].data / (self.parents[1].data ** 2)))
+
+        elif self.grad_fn == GradFn.POW:
+            base, exp = self.parents
+            self.parents[0].backward(
+                grad * exp.data * (base.data ** (exp.data - 1)))
+            self.parents[1].backward(
+                grad * (base.data ** exp.data) * np.log(base.data))
+
         elif self.grad_fn == GradFn.MEAN:
             grad_input = grad * \
                 np.ones_like(self.parents[0].data) / self.parents[0].data.size
