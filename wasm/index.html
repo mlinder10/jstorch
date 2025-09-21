@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Go WASM Tensor Demo</title>
+  </head>
+  <body>
+    <h1>Go WASM Tensor Train Demo</h1>
+    <pre id="out"></pre>
+    <script src="wasm_exec.js"></script>
+    <script>
+      const out = document.getElementById("out");
+
+      async function run() {
+        const go = new Go(); // provided by wasm_exec.js
+        const resp = await fetch("main.wasm");
+        const buf = await resp.arrayBuffer();
+        const mod = await WebAssembly.instantiate(buf, go.importObject);
+        go.run(mod.instance);
+
+        // Prepare data: same as Python example
+        const N = 20;
+        const xs = new Float64Array(N);
+        const ys = new Float64Array(N);
+        for (let i = 0; i < N; i++) {
+          xs[i] = -5 + (10 * i) / (N - 1);
+          ys[i] = 2 * xs[i] + 5;
+        }
+
+        const epochs = 200;
+        const lr = 0.01;
+
+        // call the exported function
+        const result = trainLinear(xs, ys, epochs, lr);
+        out.textContent = `w=${result.w}\nb=${
+          result.b
+        }\nlosses (first 10)=${Array.from(result.losses.slice(0, 10))
+          .map((x) => x.toFixed(6))
+          .join(", ")}`;
+      }
+
+      run().catch((e) => {
+        out.textContent = e.toString();
+        console.error(e);
+      });
+    </script>
+  </body>
+</html>
